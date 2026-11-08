@@ -1,0 +1,10 @@
+{
+  "name": "Festiverse 3D",
+  "short_name": "Festiverse",
+  "description": "Turn Your Wishes Into Worlds — cinematic 3D Diwali greetings.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#08070f",
+  "theme_color": "#08070f",
+  "icons": [{ "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml" }]
+}
