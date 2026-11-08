@@ -317,7 +317,7 @@ function Ending({ t, lang, onReplay }: { t: Strings; lang: Lang; onReplay: () =>
 
   return (
     <div data-ui className="mt-auto w-full max-w-md animate-[fadeUp_1s_var(--ease-cine)_both] pt-10">
-      <div className="glass rounded-3xl bg-ink/80 p-5 text-left shadow-[0_20px_60px_-20px_rgba(0,0,0,0.9)] sm:p-6">
+      <div className="rounded-3xl border border-gold/15 bg-ink/85 p-5 text-left backdrop-blur-xl shadow-[0_20px_60px_-20px_rgba(0,0,0,0.9)] sm:p-6">
         <p className={`text-gold ${lang === 'en' ? 'text-xs font-semibold tracking-[0.3em] uppercase' : 'text-sm font-semibold'}`}>{t.endingTitle}</p>
         <p className="mt-1.5 font-display text-xl leading-snug text-cream">{t.endingSub}</p>
         {!made ? (

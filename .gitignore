@@ -1,8 +1,26 @@
-node_modules
-dist
-.netlify
+# Dependencies & build output
+node_modules/
+dist/
+coverage/
+.netlify/
+
+# TypeScript incremental build info
+*.tsbuildinfo
+
+# Environment files (keep the example)
+.env
+.env.*
+!.env.example
 *.local
+
+# Logs
+*.log
+npm-debug.log*
+
+# Asset pipeline caches (re-created by scripts/fetch-assets.mjs and still capture)
+.asset-cache/
+.stills-raw/
+
+# OS / editor
 .DS_Store
-coverage
-.asset-cache
-.stills-raw
+Thumbs.db
