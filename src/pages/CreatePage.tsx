@@ -1,6 +1,11 @@
-import { useEffect, useId, useMemo, useState, type FormEvent } from 'react'
+import { useCallback, useEffect, useId, useMemo, useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
-import { Eye, Pencil, Sparkles, User, Users } from 'lucide-react'
+import { Eye, Info, Pencil, Sparkles, User, Users } from 'lucide-react'
+import { SongPicker } from '../components/music/SongPicker'
+import { AddSongModal } from '../components/music/AddSongModal'
+import { useMusic } from '../components/music/MusicPlayer'
+import { music as musicEngine, type ActiveMusic } from '../lib/music'
+import { ownerSong } from '../lib/musicLibrary'
 import { LanguageSwitcher, Logo, btnGhost, btnPrimary } from '../components/ui/common'
 import { Still } from '../components/ui/Still'
 import { SharePanel } from '../components/ui/SharePanel'
@@ -32,6 +37,26 @@ export default function CreatePage() {
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
   const [result, setResult] = useState<Greeting | null>(null)
+  const engine = useMusic()
+  // Owner's pick is the starting suggestion; the site soundtrack takes over if one is installed.
+  const [song, setSong] = useState<ActiveMusic>({ kind: 'youtube', id: ownerSong.id, title: ownerSong.title, author: ownerSong.channel })
+  const [songTouched, setSongTouched] = useState(false)
+  const [adding, setAdding] = useState(false)
+  const closeAdding = useCallback(() => setAdding(false), [])
+  useEffect(() => {
+    void musicEngine.detectDefault()
+  }, [])
+  useEffect(() => {
+    if (!songTouched && engine.defaultAvailable) setSong({ kind: 'default' })
+  }, [engine.defaultAvailable, songTouched])
+  const pickSong = (m: ActiveMusic) => {
+    setSong(m)
+    setSongTouched(true)
+    setResult(null)
+    // A local upload can only live in this browser session: hand it to the player so the
+    // preview on this device can use it. It is never put in the link.
+    if (m.kind === 'local') musicEngine.select(m)
+  }
 
   // Follow UI language changes until the user explicitly picks a greeting language.
   const [langTouched, setLangTouched] = useState(false)
@@ -57,7 +82,7 @@ export default function CreatePage() {
       return
     }
     setError('')
-    setResult(normalizeGreeting({ name, kind, theme, lang, message }))
+    setResult(normalizeGreeting({ name, kind, theme, lang, message, music: song.kind === 'local' ? { kind: 'none' } : song }))
     requestAnimationFrame(() => document.getElementById('result')?.scrollIntoView({ behavior: 'smooth', block: 'center' }))
   }
 
@@ -167,6 +192,19 @@ export default function CreatePage() {
                 className="w-full resize-none rounded-2xl border border-white/12 bg-white/[0.04] px-4 py-3 text-cream placeholder:text-cream/30 focus:border-gold focus:outline-none"
               />
             </div>
+
+            <fieldset>
+              <legend className="mb-1 text-sm font-semibold text-cream/80">{t.musicGreeting}</legend>
+              <p className="mb-3 text-xs text-cream/50">{t.musicGreetingNote}</p>
+              <SongPicker t={t} value={song} onPick={pickSong} onAddOwn={() => setAdding(true)} defaultAvailable={engine.defaultAvailable} />
+              {song.kind === 'local' && (
+                <p className="mt-3 flex items-start gap-2 rounded-xl bg-saffron/10 p-3 text-xs leading-relaxed text-cream/80" role="note">
+                  <Info className="mt-0.5 h-4 w-4 shrink-0 text-saffron" />
+                  {t.musicUploadLocalNote} {t.musicLocalNotShared}
+                </p>
+              )}
+              <AddSongModal t={t} open={adding} onClose={closeAdding} onAdd={pickSong} />
+            </fieldset>
 
             <button type="submit" className={`${btnPrimary} w-full text-lg`}>
               <Sparkles className="h-5 w-5" />

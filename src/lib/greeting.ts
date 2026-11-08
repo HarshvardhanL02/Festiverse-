@@ -18,12 +18,27 @@ export const NAME_MAX = 40
 export const MESSAGE_MAX = 140
 const PAYLOAD_VERSION = 1
 
+/**
+ * Music that can travel inside a link. Uploaded audio never can (there is no server),
+ * so only the site soundtrack, "no music" or a validated YouTube video ID are representable.
+ */
+export type SharedMusic =
+  | { kind: 'default' }
+  | { kind: 'none' }
+  | { kind: 'youtube'; id: string; title?: string; author?: string }
+
+export const YT_ID_RE = /^[A-Za-z0-9_-]{11}$/
+export const MUSIC_TITLE_MAX = 100
+export const MUSIC_AUTHOR_MAX = 60
+
 export interface Greeting {
   name: string
   kind: SenderKind
   theme: ThemeId
   lang: Lang
   message?: string
+  /** Absent = site default soundtrack. */
+  music?: SharedMusic
 }
 
 interface WirePayload {
@@ -33,6 +48,24 @@ interface WirePayload {
   t: 'a' | 'r' | 'c'
   l: Lang
   m?: string
+  /** music: d = default, n = none, y = YouTube (y = id, yt = title, ya = channel) */
+  mu?: 'd' | 'n' | 'y'
+  y?: string
+  yt?: string
+  ya?: string
+}
+
+export function normalizeMusic(input: unknown): SharedMusic | undefined {
+  if (!input || typeof input !== 'object') return undefined
+  const m = input as Partial<{ kind: string; id: unknown; title: unknown; author: unknown }>
+  if (m.kind === 'none') return { kind: 'none' }
+  if (m.kind === 'default') return { kind: 'default' }
+  if (m.kind === 'youtube' && typeof m.id === 'string' && YT_ID_RE.test(m.id)) {
+    const title = sanitizeText(m.title, MUSIC_TITLE_MAX)
+    const author = sanitizeText(m.author, MUSIC_AUTHOR_MAX)
+    return { kind: 'youtube', id: m.id, ...(title ? { title } : {}), ...(author ? { author } : {}) }
+  }
+  return undefined
 }
 
 const THEME_CODE: Record<ThemeId, WirePayload['t']> = { ayodhya: 'a', royal: 'r', cosmic: 'c' }
@@ -97,12 +130,14 @@ export function normalizeGreeting(input: Partial<Greeting>): Greeting {
   if (!name) throw new GreetingError('Name is required')
   const kind: SenderKind = input.kind === 'family' ? 'family' : 'individual'
   const message = sanitizeText(input.message, MESSAGE_MAX)
+  const music = normalizeMusic(input.music)
   return {
     name: kind === 'family' ? stripFamilySuffix(name) : name,
     kind,
     theme: isTheme(input.theme) ? input.theme : 'ayodhya',
     lang: isLang(input.lang) ? input.lang : 'en',
     ...(message ? { message } : {}),
+    ...(music && music.kind !== 'default' ? { music } : {}),
   }
 }
 
@@ -115,6 +150,10 @@ export function encodeGreeting(input: Partial<Greeting>): string {
     t: THEME_CODE[g.theme],
     l: g.lang,
     ...(g.message ? { m: g.message } : {}),
+    ...(g.music?.kind === 'none' ? { mu: 'n' as const } : {}),
+    ...(g.music?.kind === 'youtube'
+      ? { mu: 'y' as const, y: g.music.id, ...(g.music.title ? { yt: g.music.title } : {}), ...(g.music.author ? { ya: g.music.author } : {}) }
+      : {}),
   }
   return toBase64Url(JSON.stringify(wire))
 }
@@ -124,7 +163,7 @@ export function encodeGreeting(input: Partial<Greeting>): string {
  * "invalid link" screen. Also accepts legacy plain base64 names (e.g. "S2F0ZSBGYW1pbHk").
  */
 export function decodeGreeting(payload: string | undefined | null): Greeting | null {
-  if (!payload || payload.length > 2000 || !/^[A-Za-z0-9_\-+/=]+$/.test(payload)) return null
+  if (!payload || payload.length > 2600 || !/^[A-Za-z0-9_\-+/=]+$/.test(payload)) return null
   let text: string
   try {
     text = fromBase64Url(payload)
@@ -141,6 +180,12 @@ export function decodeGreeting(payload: string | undefined | null): Greeting | n
         theme: CODE_THEME[raw.t ?? 'a'],
         lang: raw.l,
         message: raw.m,
+        music:
+          raw.mu === 'n'
+            ? { kind: 'none' }
+            : raw.mu === 'y'
+              ? { kind: 'youtube', id: raw.y as string, title: raw.yt, author: raw.ya }
+              : undefined,
       })
     }
     // Legacy / simple form: the whole payload is just a name.

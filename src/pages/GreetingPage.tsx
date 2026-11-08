@@ -1,9 +1,10 @@
-import { lazy, Suspense, useCallback, useEffect, useMemo, useState, useSyncExternalStore } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { Clapperboard, Box, Globe, Music, Music2, Pencil, RotateCcw, SkipForward, Sparkles, User, Users } from 'lucide-react'
+import { Clapperboard, Box, Globe, Music2, Pencil, RotateCcw, SkipForward, Sparkles, User, Users } from 'lucide-react'
 import { decodeGreeting, greetingPath, greetingUrl, LANGS, NAME_MAX, normalizeGreeting, sanitizeText, type Greeting, type Lang, type SenderKind } from '../lib/greeting'
 import { detectDevice } from '../lib/performance'
-import { soundtrack } from '../lib/soundtrack'
+import { music } from '../lib/music'
+import { MusicControl, YouTubeDock, useMusic } from '../components/music/MusicPlayer'
 import { safeStorage } from '../lib/storage'
 import { STRINGS, type Strings } from '../i18n/strings'
 import { useI18n } from '../i18n/I18nProvider'
@@ -12,6 +13,8 @@ import { CinematicFilm } from '../components/ui/CinematicFilm'
 import { NameReveal } from '../components/ui/NameReveal'
 import { SharePanel } from '../components/ui/SharePanel'
 import { ErrorBoundary } from '../components/ui/ErrorBoundary'
+import { BenchOverlay } from '../components/ui/BenchOverlay'
+import type { PerfTier } from '../lib/performance'
 import { btnIcon, btnPrimary } from '../components/ui/common'
 import { ACT, journey } from '../experience/timeline'
 
@@ -44,20 +47,19 @@ export default function GreetingPage() {
   return <Experience key={payload} greeting={greeting} onLang={setLang} />
 }
 
-function useSoundtrack() {
-  const subscribe = useCallback((fn: () => void) => soundtrack.subscribe(fn), [])
-  const on = useSyncExternalStore(subscribe, () => soundtrack.on)
-  const status = useSyncExternalStore(subscribe, () => soundtrack.status)
-  return { on, available: status === 'available' }
-}
-
 function Experience({ greeting, onLang }: { greeting: Greeting; onLang: (l: Lang) => void }) {
   const device = useMemo(() => detectDevice(), [])
   const capture = import.meta.env.DEV && new URLSearchParams(window.location.search).has('t')
+  // ?bench plays the whole journey automatically and reports per-act frame times; ?tier= pins quality.
+  const query = new URLSearchParams(window.location.search)
+  const bench = query.has('bench')
+  const tierParam = query.get('tier')
+  const tier: PerfTier = tierParam === 'high' || tierParam === 'medium' || tierParam === 'low' ? tierParam : device.tier
   const [lang, setLang] = useState<Lang>(greeting.lang)
   const t = STRINGS[lang]
   const [mode, setMode] = useState<Mode>(() => {
     if (capture) return '3d'
+    if (bench) return query.get('mode') === 'film' ? 'film' : '3d'
     if (!device.webgl) return 'film'
     const stored = safeStorage.get(MODE_KEY)
     if (stored === '3d' || stored === 'film') return stored
@@ -66,14 +68,28 @@ function Experience({ greeting, onLang }: { greeting: Greeting; onLang: (l: Lang
   const [ready, setReady] = useState(false)
   const [phase, setPhase] = useState<Phase>('intro')
   const [jt, setJt] = useState(0)
-  const music = useSoundtrack()
+  const ms = useMusic()
+  // The official YouTube player stays visible while a YouTube song is selected; keep UI clear of it.
+  const dock = ms.choice.kind === 'youtube'
   const displayName = t.displayName(greeting.name, greeting.kind)
 
   useEffect(() => {
-    void soundtrack.detect()
     document.title = `${t.festivalTitle} · ${t.fromLine(greeting.name, greeting.kind)}`
     document.documentElement.lang = lang
   }, [t, greeting, lang])
+
+  // Music: the link's choice (absent = site soundtrack). A song uploaded earlier in this
+  // browser session (e.g. on the create page) stays local and takes precedence for this visitor.
+  useEffect(() => {
+    void music.detectDefault()
+    if (music.get().choice.kind !== 'local') music.select(greeting.music ?? { kind: 'default' })
+  }, [greeting])
+
+  // Cinematic cues (file audio follows them; YouTube is left to the viewer's controls).
+  useEffect(() => {
+    if (phase === 'reveal') music.cue('reveal')
+    if (phase === 'ending') music.cue('ending')
+  }, [phase])
 
   // Reset the shared clock for this greeting.
   useEffect(() => {
@@ -120,7 +136,7 @@ function Experience({ greeting, onLang }: { greeting: Greeting; onLang: (l: Lang
   }, [capture])
 
   const begin = () => {
-    if (music.available) void soundtrack.setOn(true)
+    music.start() // inside the click: browsers require a user gesture for sound
     journey.t = device.reducedMotion ? ACT.reveal : 0
     journey.started = true
   }
@@ -128,7 +144,7 @@ function Experience({ greeting, onLang }: { greeting: Greeting; onLang: (l: Lang
     journey.t = Math.max(journey.t, ACT.reveal - 0.2)
   }
   const replay = () => {
-    soundtrack.restart()
+    music.cue('replay')
     journey.t = 0
     journey.started = true
   }
@@ -144,6 +160,13 @@ function Experience({ greeting, onLang }: { greeting: Greeting; onLang: (l: Lang
   }, [mode])
 
   const canBegin = mode === 'film' || ready
+
+  useEffect(() => {
+    if (bench && canBegin && !journey.started) {
+      journey.t = 0
+      journey.started = true
+    }
+  }, [bench, canBegin])
   const revealed = phase === 'reveal' || phase === 'ending'
 
   return (
@@ -151,19 +174,21 @@ function Experience({ greeting, onLang }: { greeting: Greeting; onLang: (l: Lang
       {mode === '3d' ? (
         <ErrorBoundary onError={fallback} fallback={<CinematicFilm jt={jt} started={phase !== 'intro'} reduced={device.reducedMotion} />}>
           <Suspense fallback={null}>
-            <GreetingCanvas tier={capture ? 'high' : device.tier} onFallback={fallback} onReady={onReady} capture={capture} />
+            <GreetingCanvas tier={capture ? 'high' : tier} onFallback={fallback} onReady={onReady} capture={capture} bench={bench} />
           </Suspense>
         </ErrorBoundary>
       ) : (
         <CinematicFilm jt={jt} started={phase !== 'intro'} reduced={device.reducedMotion} />
       )}
 
+      {bench && <BenchOverlay tier={mode === 'film' ? 'film' : tier} mode={mode} />}
       {!capture && (
         <>
-          <TopBar t={t} lang={lang} onLang={(l) => (setLang(l), onLang(l))} mode={mode} onMode={device.webgl ? switchMode : undefined} music={music} />
+          <TopBar t={t} lang={lang} onLang={(l) => (setLang(l), onLang(l))} mode={mode} onMode={device.webgl ? switchMode : undefined} />
+          <YouTubeDock t={t} />
 
           {phase === 'intro' && (
-            <div className="pointer-events-none fixed inset-0 z-20 flex flex-col items-center justify-between px-6 pt-[max(5.5rem,11vh)] pb-[max(2.5rem,env(safe-area-inset-bottom))] text-center">
+            <div className={`pointer-events-none fixed inset-0 z-20 flex flex-col items-center justify-between px-6 pt-[max(5.5rem,11vh)] text-center ${dock ? 'pb-[270px] lg:pb-10' : 'pb-[max(2.5rem,env(safe-area-inset-bottom))]'}`}>
               <div className="max-w-2xl animate-[fadeUp_1.6s_var(--ease-cine)_both]">
                 <p className={`text-gold/90 ${lang === 'en' ? 'font-serif-display text-lg italic sm:text-xl' : 'text-base font-semibold'}`}>{t.introFrom(greeting.name, greeting.kind)}</p>
                 <h1 className="glow-text mt-3 font-display text-[2.4rem] leading-[1.05] text-cream sm:text-6xl">{t.introTitle}</h1>
@@ -183,7 +208,7 @@ function Experience({ greeting, onLang }: { greeting: Greeting; onLang: (l: Lang
 
           {phase === 'journey' && (
             <>
-              <div className="pointer-events-none fixed inset-x-0 bottom-[18vh] z-10 grid place-items-center px-6 text-center">
+              <div className={`pointer-events-none fixed inset-x-0 z-10 grid place-items-center px-6 text-center ${dock ? 'bottom-[290px] lg:bottom-[18vh]' : 'bottom-[18vh]'}`}>
                 {t.actCaptions.map((line, i) => {
                   const [a, b] = CAPTIONS[i]
                   const vis = jt >= a && jt <= b
@@ -200,7 +225,7 @@ function Experience({ greeting, onLang }: { greeting: Greeting; onLang: (l: Lang
               <button
                 type="button"
                 onClick={skip}
-                className="glass fixed right-4 bottom-[max(1.25rem,env(safe-area-inset-bottom))] z-20 inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-sm text-cream/80"
+                className={`glass fixed right-4 z-20 inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-sm text-cream/80 ${dock ? 'bottom-[262px] lg:bottom-5' : 'bottom-[max(1.25rem,env(safe-area-inset-bottom))]'}`}
               >
                 {t.skip} <SkipForward className="h-4 w-4" />
               </button>
@@ -208,7 +233,7 @@ function Experience({ greeting, onLang }: { greeting: Greeting; onLang: (l: Lang
           )}
 
           {revealed && (
-            <div className={`fixed inset-0 z-10 flex flex-col items-center overflow-x-hidden overflow-y-auto overscroll-contain px-5 pb-8 text-center ${phase === 'ending' ? 'pt-[9vh]' : 'pointer-events-none pt-[15vh]'}`}>
+            <div className={`fixed inset-0 z-10 flex flex-col items-center overflow-x-hidden overflow-y-auto overscroll-contain px-5 text-center ${dock ? 'pb-[270px] lg:pb-8' : 'pb-8'} ${phase === 'ending' ? 'pt-[9vh]' : 'pointer-events-none pt-[15vh]'}`}>
               <div aria-hidden="true" className="pointer-events-none absolute top-[4vh] left-1/2 -z-10 h-[56vh] w-[min(1100px,150vw)] -translate-x-1/2 rounded-[50%] bg-[radial-gradient(closest-side,rgba(8,4,10,0.62),rgba(8,4,10,0.28)_62%,transparent)]" />
               <p className={`text-foil ${lang === 'en' ? 'font-serif-display text-2xl font-semibold tracking-[0.42em] uppercase sm:text-3xl' : 'font-display text-3xl sm:text-4xl'}`}>
                 <NameReveal text={t.festivalTitle} play={revealed} reduced={device.reducedMotion} />
@@ -236,14 +261,12 @@ function TopBar({
   onLang,
   mode,
   onMode,
-  music,
 }: {
   t: Strings
   lang: Lang
   onLang: (l: Lang) => void
   mode: Mode
   onMode?: () => void
-  music: { on: boolean; available: boolean }
 }) {
   return (
     <div className="fixed top-0 right-0 left-0 z-30 flex items-center justify-between gap-2 px-4 pt-[max(1rem,env(safe-area-inset-top))]">
@@ -267,17 +290,7 @@ function TopBar({
             {mode === '3d' ? <Clapperboard className="h-5 w-5" /> : <Box className="h-5 w-5" />}
           </button>
         )}
-        <button
-          type="button"
-          onClick={() => void soundtrack.toggle()}
-          disabled={!music.available}
-          className={`${btnIcon} disabled:cursor-not-allowed disabled:opacity-40`}
-          aria-pressed={music.on}
-          aria-label={!music.available ? t.musicUnavailable : music.on ? t.musicOff : t.musicOn}
-          title={!music.available ? t.musicUnavailable : music.on ? t.musicOff : t.musicOn}
-        >
-          {music.on ? <Music2 className="h-5 w-5 text-gold" /> : <Music className="h-5 w-5" />}
-        </button>
+        <MusicControl t={t} />
       </div>
     </div>
   )
@@ -285,6 +298,8 @@ function TopBar({
 
 /** Act 6 — the viral ending with a working inline greeting generator. */
 function Ending({ t, lang, onReplay }: { t: Strings; lang: Lang; onReplay: () => void }) {
+  const ms = useMusic()
+  const shareMusic = ms.choice.kind === 'local' ? ({ kind: 'none' } as const) : ms.choice
   const [name, setName] = useState('')
   const [kind, setKind] = useState<SenderKind>('family')
   const [error, setError] = useState('')
@@ -295,7 +310,7 @@ function Ending({ t, lang, onReplay }: { t: Strings; lang: Lang; onReplay: () =>
     e.preventDefault()
     if (!sanitizeText(name, NAME_MAX)) return setError(t.nameRequired)
     setError('')
-    setMade(normalizeGreeting({ name, kind, lang, theme: 'ayodhya' }))
+    setMade(normalizeGreeting({ name, kind, lang, theme: 'ayodhya', music: shareMusic }))
   }
   const pill = (on: boolean) =>
     `flex flex-1 items-center justify-center gap-1.5 rounded-xl border px-3 py-2 text-sm font-medium transition ${on ? 'border-gold bg-gold/15 text-cream' : 'border-white/10 text-cream/65'}`
@@ -333,6 +348,12 @@ function Ending({ t, lang, onReplay }: { t: Strings; lang: Lang; onReplay: () =>
                 {error}
               </p>
             )}
+            <p className="flex items-center gap-1.5 truncate text-xs text-cream/55">
+              <Music2 className="h-3.5 w-3.5 shrink-0 text-gold" />
+              <span className="truncate">
+                {t.musicGreeting}: {shareMusic.kind === 'youtube' ? shareMusic.title || 'YouTube' : shareMusic.kind === 'none' ? t.musicNone : t.musicDefault}
+              </span>
+            </p>
             <button type="submit" className={`${btnPrimary} w-full`}>
               <Sparkles className="h-5 w-5" /> {t.createMy}
             </button>

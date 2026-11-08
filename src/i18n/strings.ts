@@ -75,6 +75,53 @@ export interface Strings {
   openPreview: string
   journeyTitle: string
   journeyActs: { title: string; text: string }[]
+  musicTitle: string
+  musicOpen: string
+  musicPlay: string
+  musicPause: string
+  musicMute: string
+  musicUnmute: string
+  musicVolume: string
+  musicNone: string
+  musicDefault: string
+  musicDefaultMissing: string
+  musicCatHi: string
+  musicCatMr: string
+  musicCatEn: string
+  musicAddOwn: string
+  musicAddYoutube: string
+  musicAddUpload: string
+  musicYtPlaceholder: string
+  musicYtCheck: string
+  musicYtChecking: string
+  musicYtInvalid: string
+  musicYtNotFound: string
+  musicYtBlocked: string
+  musicYtUnknown: string
+  musicOpenYoutube: string
+  musicUseSong: string
+  musicUploadPick: string
+  musicUploadHint: string
+  musicUploadTooBig: string
+  musicUploadBadType: string
+  musicUploadRights: string
+  musicUploadLocalNote: string
+  musicViaYoutube: string
+  musicOwnerPick: string
+  musicNeedsTap: string
+  musicBlocked: string
+  musicError: string
+  musicGreeting: string
+  musicGreetingNote: string
+  musicClose: string
+  musicNowPlaying: string
+  musicPaused: string
+  musicLoading: string
+  musicReady: string
+  musicYourUpload: string
+  musicLocalNotShared: string
+  musicSelected: string
+  musicChange: string
   invalidTitle: string
   invalidSub: string
   notFoundTitle: string
@@ -174,6 +221,53 @@ const en: Strings = {
     { title: 'A Thousand Lights', text: 'The ghats ignite in one golden wave.' },
     { title: 'The Divine Reveal', text: 'Your name rises from a mandala of light.' },
   ],
+  musicTitle: "Music",
+  musicOpen: "Open music",
+  musicPlay: "Play",
+  musicPause: "Pause",
+  musicMute: "Mute",
+  musicUnmute: "Unmute",
+  musicVolume: "Volume",
+  musicNone: "No music",
+  musicDefault: "Cinematic soundtrack",
+  musicDefaultMissing: "Not installed on this site yet",
+  musicCatHi: "Hindi",
+  musicCatMr: "Marathi",
+  musicCatEn: "English / Instrumental",
+  musicAddOwn: "Add Your Own Song",
+  musicAddYoutube: "Paste YouTube link",
+  musicAddUpload: "Upload audio",
+  musicYtPlaceholder: "https://youtu.be/…",
+  musicYtCheck: "Check link",
+  musicYtChecking: "Checking…",
+  musicYtInvalid: "That doesn't look like a YouTube video link.",
+  musicYtNotFound: "This video is unavailable, private or removed.",
+  musicYtBlocked: "The owner doesn't allow this video to play on other websites.",
+  musicYtUnknown: "Couldn't reach YouTube to check this video. You can still try it.",
+  musicOpenYoutube: "Open on YouTube",
+  musicUseSong: "Use this song",
+  musicUploadPick: "Choose an audio file",
+  musicUploadHint: "MP3, WAV, M4A or OGG · up to 25 MB · never leaves your device",
+  musicUploadTooBig: "This file is larger than 25 MB.",
+  musicUploadBadType: "This browser can't play that file. Use MP3, WAV, M4A or OGG.",
+  musicUploadRights: "I own this audio or have permission to use it",
+  musicUploadLocalNote: "Uploaded audio plays only in this browser, for this visit. It can't travel with your link because Festiverse has no server.",
+  musicViaYoutube: "Plays through the official YouTube player. Rights belong to the channel owner.",
+  musicOwnerPick: "Owner's pick",
+  musicNeedsTap: "Tap play on the YouTube player to start the song.",
+  musicBlocked: "This song can't play here.",
+  musicError: "This song couldn't be played.",
+  musicGreeting: "Greeting music",
+  musicGreetingNote: "Your recipient starts the music with a tap — browsers never autoplay sound.",
+  musicClose: "Close",
+  musicNowPlaying: "Now playing",
+  musicPaused: "Paused",
+  musicLoading: "Loading…",
+  musicReady: "Ready — starts with the journey",
+  musicYourUpload: "Your upload",
+  musicLocalNotShared: "Your link will be shared without music; the upload stays on this device.",
+  musicSelected: "Selected",
+  musicChange: "Change song",
   invalidTitle: 'This greeting link looks broken',
   invalidSub:
     'Part of the link may have been cut off while sharing. Ask the sender to share it again, or create your own.',
@@ -272,6 +366,53 @@ const hi: Strings = {
     { title: 'हज़ार दीप', text: 'घाट एक सुनहरी लहर में जगमगा उठते हैं।' },
     { title: 'दिव्य दर्शन', text: 'प्रकाश के मंडल से आपका नाम उभरता है।' },
   ],
+  musicTitle: "संगीत",
+  musicOpen: "संगीत खोलें",
+  musicPlay: "चलाएँ",
+  musicPause: "रोकें",
+  musicMute: "आवाज़ बंद",
+  musicUnmute: "आवाज़ चालू",
+  musicVolume: "आवाज़ का स्तर",
+  musicNone: "बिना संगीत",
+  musicDefault: "सिनेमाई संगीत",
+  musicDefaultMissing: "इस साइट पर अभी उपलब्ध नहीं",
+  musicCatHi: "हिन्दी",
+  musicCatMr: "मराठी",
+  musicCatEn: "अंग्रेज़ी / वाद्य",
+  musicAddOwn: "अपना गीत जोड़ें",
+  musicAddYoutube: "YouTube लिंक डालें",
+  musicAddUpload: "ऑडियो अपलोड करें",
+  musicYtPlaceholder: "https://youtu.be/…",
+  musicYtCheck: "लिंक जाँचें",
+  musicYtChecking: "जाँच हो रही है…",
+  musicYtInvalid: "यह YouTube वीडियो लिंक नहीं लगता।",
+  musicYtNotFound: "यह वीडियो उपलब्ध नहीं है, निजी है या हटा दिया गया है।",
+  musicYtBlocked: "वीडियो के मालिक ने इसे दूसरी वेबसाइटों पर चलाने की अनुमति नहीं दी है।",
+  musicYtUnknown: "YouTube से जाँच नहीं हो सकी। आप फिर भी इसे आज़मा सकते हैं।",
+  musicOpenYoutube: "YouTube पर खोलें",
+  musicUseSong: "यह गीत चुनें",
+  musicUploadPick: "ऑडियो फ़ाइल चुनें",
+  musicUploadHint: "MP3, WAV, M4A या OGG · अधिकतम 25 MB · आपके डिवाइस से बाहर नहीं जाती",
+  musicUploadTooBig: "यह फ़ाइल 25 MB से बड़ी है।",
+  musicUploadBadType: "यह ब्राउज़र यह फ़ाइल नहीं चला सकता। MP3, WAV, M4A या OGG इस्तेमाल करें।",
+  musicUploadRights: "यह ऑडियो मेरा है या मुझे इसके उपयोग की अनुमति है",
+  musicUploadLocalNote: "अपलोड किया गया ऑडियो सिर्फ़ इसी ब्राउज़र में, इसी बार चलेगा। Festiverse का कोई सर्वर नहीं है, इसलिए यह लिंक के साथ नहीं जा सकता।",
+  musicViaYoutube: "आधिकारिक YouTube प्लेयर से चलता है। अधिकार चैनल के मालिक के हैं।",
+  musicOwnerPick: "मालिक की पसंद",
+  musicNeedsTap: "गीत शुरू करने के लिए YouTube प्लेयर पर प्ले दबाएँ।",
+  musicBlocked: "यह गीत यहाँ नहीं चल सकता।",
+  musicError: "यह गीत नहीं चल सका।",
+  musicGreeting: "शुभकामना का संगीत",
+  musicGreetingNote: "पाने वाला एक टैप से संगीत शुरू करेगा — ब्राउज़र अपने-आप आवाज़ नहीं चलाते।",
+  musicClose: "बंद करें",
+  musicNowPlaying: "अभी चल रहा है",
+  musicPaused: "रुका हुआ",
+  musicLoading: "लोड हो रहा है…",
+  musicReady: "तैयार — यात्रा के साथ शुरू होगा",
+  musicYourUpload: "आपका अपलोड",
+  musicLocalNotShared: "आपका लिंक बिना संगीत के जाएगा; अपलोड इसी डिवाइस पर रहेगा।",
+  musicSelected: "चुना गया",
+  musicChange: "गीत बदलें",
   invalidTitle: 'यह शुभकामना लिंक टूटा हुआ लगता है',
   invalidSub:
     'भेजते समय लिंक का कुछ हिस्सा कट गया होगा। भेजने वाले से दोबारा भेजने को कहें या अपनी शुभकामना बनाएँ।',
@@ -373,6 +514,53 @@ const mr: Strings = {
     { title: 'हजार दिवे', text: 'घाट एका सोनेरी लाटेत उजळून निघतात.' },
     { title: 'दिव्य दर्शन', text: 'प्रकाशाच्या मंडलातून तुमचे नाव उमटते.' },
   ],
+  musicTitle: "संगीत",
+  musicOpen: "संगीत उघडा",
+  musicPlay: "वाजवा",
+  musicPause: "थांबवा",
+  musicMute: "आवाज बंद",
+  musicUnmute: "आवाज चालू",
+  musicVolume: "आवाजाची पातळी",
+  musicNone: "संगीत नाही",
+  musicDefault: "सिनेमॅटिक संगीत",
+  musicDefaultMissing: "या साइटवर अद्याप उपलब्ध नाही",
+  musicCatHi: "हिंदी",
+  musicCatMr: "मराठी",
+  musicCatEn: "इंग्रजी / वाद्य",
+  musicAddOwn: "तुमचे गाणे जोडा",
+  musicAddYoutube: "YouTube लिंक टाका",
+  musicAddUpload: "ऑडिओ अपलोड करा",
+  musicYtPlaceholder: "https://youtu.be/…",
+  musicYtCheck: "लिंक तपासा",
+  musicYtChecking: "तपासत आहे…",
+  musicYtInvalid: "ही YouTube व्हिडिओ लिंक वाटत नाही.",
+  musicYtNotFound: "हा व्हिडिओ उपलब्ध नाही, खाजगी आहे किंवा काढून टाकला आहे.",
+  musicYtBlocked: "व्हिडिओच्या मालकाने तो इतर वेबसाइटवर वाजवण्याची परवानगी दिलेली नाही.",
+  musicYtUnknown: "YouTube वरून तपासता आले नाही. तरीही तुम्ही प्रयत्न करू शकता.",
+  musicOpenYoutube: "YouTube वर उघडा",
+  musicUseSong: "हे गाणे निवडा",
+  musicUploadPick: "ऑडिओ फाइल निवडा",
+  musicUploadHint: "MP3, WAV, M4A किंवा OGG · जास्तीत जास्त 25 MB · तुमच्या डिव्हाइसबाहेर जात नाही",
+  musicUploadTooBig: "ही फाइल 25 MB पेक्षा मोठी आहे.",
+  musicUploadBadType: "हा ब्राउझर ही फाइल वाजवू शकत नाही. MP3, WAV, M4A किंवा OGG वापरा.",
+  musicUploadRights: "हा ऑडिओ माझा आहे किंवा मला तो वापरण्याची परवानगी आहे",
+  musicUploadLocalNote: "अपलोड केलेला ऑडिओ फक्त याच ब्राउझरमध्ये, याच भेटीत वाजेल. Festiverse चा सर्व्हर नसल्यामुळे तो लिंकसोबत जाऊ शकत नाही.",
+  musicViaYoutube: "अधिकृत YouTube प्लेयरमधून वाजते. हक्क चॅनेलच्या मालकाचे आहेत.",
+  musicOwnerPick: "मालकाची निवड",
+  musicNeedsTap: "गाणे सुरू करण्यासाठी YouTube प्लेयरवर प्ले दाबा.",
+  musicBlocked: "हे गाणे इथे वाजू शकत नाही.",
+  musicError: "हे गाणे वाजवता आले नाही.",
+  musicGreeting: "शुभेच्छेचे संगीत",
+  musicGreetingNote: "प्राप्तकर्ता एका टॅपने संगीत सुरू करेल — ब्राउझर आपोआप आवाज वाजवत नाहीत.",
+  musicClose: "बंद करा",
+  musicNowPlaying: "आता वाजत आहे",
+  musicPaused: "थांबवले",
+  musicLoading: "लोड होत आहे…",
+  musicReady: "तयार — प्रवासासोबत सुरू होईल",
+  musicYourUpload: "तुमचा अपलोड",
+  musicLocalNotShared: "तुमची लिंक संगीताशिवाय जाईल; अपलोड याच डिव्हाइसवर राहील.",
+  musicSelected: "निवडले",
+  musicChange: "गाणे बदला",
   invalidTitle: 'ही शुभेच्छा लिंक तुटलेली दिसते',
   invalidSub:
     'पाठवताना लिंकचा काही भाग कापला गेला असावा. पाठवणाऱ्याला पुन्हा पाठवायला सांगा किंवा तुमची स्वतःची शुभेच्छा तयार करा.',

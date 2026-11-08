@@ -17,6 +17,8 @@ export interface GreetingCanvasProps {
   onReady?: () => void
   /** Dev-only: keep the drawing buffer so stills can be captured. */
   capture?: boolean
+  /** Benchmark mode: no automatic tier downgrades, so each run measures one tier. */
+  bench?: boolean
 }
 
 /** Launches a firework wherever the viewer taps (after the reveal). */
@@ -75,7 +77,7 @@ function Grade({ tier }: { tier: PerfTier }) {
   )
 }
 
-export default function GreetingCanvas({ tier: initialTier, onFallback, onReady, capture = false }: GreetingCanvasProps) {
+export default function GreetingCanvas({ tier: initialTier, onFallback, onReady, capture = false, bench = false }: GreetingCanvasProps) {
   const [tier, setTier] = useState<PerfTier>(initialTier)
   const captureDpr = capture ? Number(new URLSearchParams(window.location.search).get('dpr')) || 1.5 : 0
   const [dpr, setDpr] = useState(captureDpr || BUDGET[initialTier].dpr[1])
@@ -94,7 +96,7 @@ export default function GreetingCanvas({ tier: initialTier, onFallback, onReady,
       }}
     >
       <color attach="background" args={['#05030a']} />
-      {!capture && (
+      {!capture && !bench && (
         <PerformanceMonitor
           flipflops={3}
           onDecline={() => {

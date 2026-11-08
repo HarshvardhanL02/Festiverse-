@@ -31,7 +31,9 @@ Rozha One, Mukta and Cormorant Garamond come from Google Fonts under the SIL Ope
 
 ## Audio
 
-**None is shipped.** The experience is silent by default and the music button stays disabled until you add a file you own or have licensed. See the README section "Soundtrack". Do not add film songs or devotional recordings without written permission from the rights holders.
+- **No audio files are shipped.** `public/audio/soundtrack.mp3` is an optional slot for a track you own or have licensed.
+- **YouTube songs** (default library and user-pasted links) are not hosted or redistributed by Festiverse. They play only inside YouTube's official embedded player, under YouTube's terms and the channel owner's embed settings. Library entries come from official artist, label or broadcaster channels (see `src/lib/musicLibrary.ts`).
+- **User uploads** never leave the visitor's browser. The upload dialog asks the visitor to confirm they own the audio or have permission to use it.
 
 ## Why there are no third-party temple models
 
